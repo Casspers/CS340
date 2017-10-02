@@ -5,12 +5,14 @@
 // server.h header file
 // Project 1
 //
+// Modified by Cass Outlaw 10.1.17
 // -----------------------------------
 
 #include <string.h>
 #include <stdio.h>
 #include <sys/types.h> 
 #include <sys/socket.h>
+#include <sys/wait.h>
 #include <netinet/in.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -110,6 +112,14 @@ int accept_client( int server_socket_fd ) {
 	// messages
 	// -------------------------------------
 
+
+    //Chose to use your request handeling for this attempt untill
+    // I get the grade back on my work
+
+// forking of the parent process
+    // children will enter parent will not.
+
+if (fork() == 0){
 
     if ( client_socket_fd >= 0 ) {
 
@@ -222,6 +232,17 @@ int accept_client( int server_socket_fd ) {
 		exit_status = FAIL;
 
 	}
+
+	// close client socket inside the fork
+	close( client_socket_fd);
+	// exit the child process returning 0
+	exit(0);
+}
+
+// halt the parent process untill the child has exited
+wait(0);
+
+
 
 	if ( DEBUG ) printf("Exit status = %d\n", exit_status );
 	
