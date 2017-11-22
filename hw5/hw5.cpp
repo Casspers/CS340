@@ -39,6 +39,8 @@ int main(int argc, char **argv) {
   
   if ( pcap_findalldevs( &alldevs, errbuf ) == -1 ) {
     
+
+
     std::cerr<<"Error in pcap_findalldevs: "<< errbuf<< std::endl;
     exit(1);
     
@@ -90,8 +92,21 @@ int main(int argc, char **argv) {
 
 	http://linux.die.net/man/3/pcap_lookupnet
   */
- 
- 	pcap_lookupnet(selected_dev, netp, maskp, errbuf);
+
+  // Creating pcap character for pcap_lookupnet function
+  char lookup_e[PCAP_ERRBUF_SIZE];
+
+  // Creating character pointer for device selected
+  const char* dev = ndevs[selected_dev-1].c_str()
+
+  // Testing for exceptions
+ 	if(pcap_lookupnet( dev, &netp, &maskp, lookup_e) != 0) {
+
+    //Exception
+    std::cerr<<"Error in pcap_lookupnet: "<< errbuf<< std::endl;
+    exit(1);
+
+  }
   
 
 
@@ -108,15 +123,33 @@ int main(int argc, char **argv) {
 	    and netmask info.
 
 	http://linux.die.net/man/3/inet_ntoa
+    // Why does this say?
 
 
   */
-
-
-
-
-
   
+  // Variable Declaration
+
+  //netp / maskp
+  struct in_addr addr_netp;
+  struct in_addr addr_maskp;
+  addr_netp.sin_addr = (in_addr_t)netp;
+  addr_maskp.sin_addr = (in_addr_t)maskp;
+
+
+  // std Outputs
+
+  // Host
+  std::cout<<"Host\t"<<inet_ntoa(addr_netp)<<std::endl;
+
+  // iNet
+        // dont know why selected dev has to be -1, got that solution from the internet
+  std::cout<<"iNet\t"<<inets[selected_dev-1]<<std::endl;
+
+  // NetMask
+  std::cout<<"NetMask\t"<<inet_ntoa(addr_maskp)<<std::endl;
+
+
   for ( int i=0; i<inets.size(); i++ ) free( inets[i] ); 
   
   /**
@@ -139,6 +172,8 @@ int main(int argc, char **argv) {
   nano_time_spec.tv_nsec=100000;
   nano_time_spec.tv_sec=0;
 
+
+
   /*
 	TODO: 3
 
@@ -148,8 +183,9 @@ int main(int argc, char **argv) {
 
   */
   
+
   
-    pcap_lookupnet(dev, &pNet, &pMask, errbuf);
+  cap_desc = pcap_open_live(dev, 10000, 0, 1000, errbuf);
 
 
 
@@ -172,7 +208,30 @@ int main(int argc, char **argv) {
 
       */
       
+      //eth_hdr = (struct sniff_ethernet *) packet; 
+
+      // Sniff packet
       eth_hdr = (struct sniff_ethernet *) packet; 
+
+      ip_hdr = (struct sniff_ip*)(packet + SIZE_ETHERNET);
+      u_int ip_size = (IP_HL(ip_hdr)*4);
+      tcp_hdr = (struct sniff_tcp *)(packet + SIZE_ETHERNET + ip_size);
+
+      //Get Ports
+      sport = ntohs(tcp_hdr->th_sport);
+      dport = ntohs(tcp_hdr->th_dport);
+      u_short eh = eth_hdr->ether_type;
+      u_short ip_pr = ip_hdr->ip_p;
+
+      // 
+      if ((eh == ntohs(ETHERTYPE_IP)) && (ip_pr == IPPROTO_TCP)){
+        if ((sport == 80) || (dport == 80)){
+          char* source_a = inet_ntoa(ip_hdr->ip_src);
+          char* dest_a = inet_ntoa(ip_hdr->ip_dst);
+          printf("Source [%s : %d] -> Destination [%s : %d]\n", source_a, sport, dest_a, dport);
+        }
+      }
+
       
       
      
