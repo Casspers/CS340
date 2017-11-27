@@ -70,6 +70,13 @@ int main( int argc, char *argv[] ) {
 
 				printf("Server socket listening and accepting connections on port %d\n", port_number );
 
+				// -------------------------------------
+				// TODO:
+				// -------------------------------------
+				// You complete child signal handler code to remove child process from process 
+				// table (i.e. reap the child)
+				// -------------------------------------
+
 				accept_client( server_socket_fd );
 
 			}
@@ -98,14 +105,16 @@ static void sig_int_handler( int sig ) {
 static void sig_child_handler( int sig ) {
 
 	// -------------------------------------
-	// TODO: HW1b
+	// TODO:
 	// -------------------------------------
 	// You complete child signal handler code to remove child process from process 
 	// table (i.e. reap the child)
 	// -------------------------------------
 
-	
+	pid_t pid = 0;
+	int status;
 
-	
+	pid = waitpid(-1, &status, 0 );
+	printf("Child process (%d) has terminated\n", pid );
 
 } // end sig_child_handler function

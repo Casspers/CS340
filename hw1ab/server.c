@@ -5,14 +5,12 @@
 // server.h header file
 // Project 1
 //
-// Modified by Cass Outlaw 10.1.17
 // -----------------------------------
 
 #include <string.h>
 #include <stdio.h>
 #include <sys/types.h> 
 #include <sys/socket.h>
-#include <sys/wait.h>
 #include <netinet/in.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -84,9 +82,10 @@ int accept_client( int server_socket_fd ) {
 	int i = 0;
 
 	socklen_t client_length; 
+	pid_t pid;
 	struct sockaddr_in client_address;
 
-	char request[1024];
+	char request[512];
 	char response[512];
 	char kv_pairs[100];
 	char row[200];
@@ -105,32 +104,71 @@ int accept_client( int server_socket_fd ) {
     client_socket_fd = accept( server_socket_fd, (struct sockaddr *) &client_address, &client_length );
 
     // -------------------------------------
-	// TODO: HW1b
+	// TODO:
 	// -------------------------------------
-	// Fork a child process that includes the code 
-	// used to handle the HTTP request and response
-	// messages
+	// You complete child signal handler code to remove child process from process 
+	// table (i.e. reap the child)
 	// -------------------------------------
 
+	pid = fork();
 
-    //Chose to use your request handeling for this attempt untill
-    // I get the grade back on my work
+    if ( client_socket_fd >= 0 && pid == 0 ) {
 
-// forking of the parent process
-    // children will enter parent will not.
-
-if (fork() == 0){
-
-    if ( client_socket_fd >= 0 ) {
+    	close( server_socket_fd );
 
 	    bzero( table_rows, 200 );
-	    bzero( request, 1024 );
+	    bzero( request, 512 );
 
-	    read( client_socket_fd, request, 1023 );
+	    read( client_socket_fd, request, 511 );
 
 	    p = request;
 	    
 	    if ( DEBUG ) printf("Here is the http message:\n%s\n\n", request );
+
+	    // -------------------------------------
+		// TODO:
+		// -------------------------------------
+		// Generate the correct http response when a GET or POST method is sent
+		// from the client to the server.
+		// 
+		// In general, you will parse the request character array to:
+		// 1) Determine if a GET or POST method was used
+		// 2) Then retrieve the key/value pairs (see below)
+		// -------------------------------------
+
+		/*
+		------------------------------------------------------
+		GET method key/values are located in the URL of the request message
+		? - indicates the beginning of the key/value pairs in the URL
+		& - is used to separate multiple key/value pairs 
+		= - is used to separate the key and value
+
+		Example:
+
+		http://localhost/?first=brent&last=munsell
+
+		two &'s indicated two key/value pairs (first=brent and last=munsell)
+		key = first, value = brent
+		key = last, value = munsell
+		------------------------------------------------------
+		*/
+
+		/*
+		------------------------------------------------------
+		POST method key/value pairs are located in the entity body of the request message
+		? - indicates the beginning of the key/value pairs
+		& - is used to delimit multiple key/value pairs 
+		= - is used to delimit key and value
+
+		Example:
+
+		first=brent&last=munsell
+
+		two &'s indicated two key/value pairs (first=brent and last=munsell)
+		key = first, value = brent
+		key = last, value = munsell
+		------------------------------------------------------
+		*/
 
 		if ( request[0] == 'G' && request[1] == 'E' && request[2] == 'T' ) {
 
@@ -227,25 +265,16 @@ if (fork() == 0){
 
 	    close( client_socket_fd );
 
+	    exit(0);
+
 	} else {
 
 		exit_status = FAIL;
 
 	}
 
-	// close client socket inside the fork
-	close( client_socket_fd);
-	// exit the child process returning 0
-	exit(0);
-}
+	close( client_socket_fd );
 
-// halt the parent process untill the child has exited
-wait(0);
-
-
-
-	if ( DEBUG ) printf("Exit status = %d\n", exit_status );
-	
 	return exit_status;
 
 } // end accept_client function
