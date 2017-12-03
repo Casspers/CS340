@@ -18,128 +18,126 @@
 **************************************
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include <netdb.h>
-  
-#define PORT 4950
-#define BUFSIZE 1024
+#include <stdio.h>
+#include<string.h>
+#include <stdlib.h>
+#include <sqlite3.h> 
+ 
+static int callback(void *data, int argc, char **argv, char **azColName){
+   int i;
+   fprintf(stderr, "%s: \n", (const char*)data);
+   
+   for(i = 0; i<argc; i++){
+      printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+   }
+   
+   printf("\n");
+   return 0;
+}
 
-void send_to_all(int j, int i, int sockfd, int nbytes_recvd, char *recv_buf, fd_set *master)
-{
-  if (FD_ISSET(j, master)){
-    if (j != sockfd && j != i) {
-      if (send(j, recv_buf, nbytes_recvd, 0) == -1) {
-        perror("send");
-      }
+int main(){
+
+    sqlite3 *db;
+   char *zErrMsg = 0;
+   int rc;
+   char *sql;
+   const char* data = "Callback function called";
+
+   
+    
+    char auth_code[100] = "307";
+    char str[100];
+    int listen_fd, comm_fd;
+    char message[100];
+ 
+    struct sockaddr_in servaddr;
+ 
+    listen_fd = socket(AF_INET, SOCK_STREAM, 0);
+ 
+    bzero( &servaddr, sizeof(servaddr));
+ 
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_addr.s_addr = htons(INADDR_ANY);
+    servaddr.sin_port = htons(22000);
+ 
+    bind(listen_fd, (struct sockaddr *) &servaddr, sizeof(servaddr));
+ 
+    listen(listen_fd, 10);
+ 
+    comm_fd = accept(listen_fd, (struct sockaddr*) NULL, NULL);
+ 
+    while(1){
+ 
+        bzero( str, 100);
+ 
+        // reads client input
+        read(comm_fd,str,100);
+
+        // will give connection if client has correct code
+        printf("%s\n", str);
+        printf("%s\n", auth_code);
+        printf("%i\n", strcmp(str, auth_code));
+
+
+        // Correct code
+        if (strcmp(str, auth_code) == 10){
+ 
+          //printf("Access Granted");
+          strncpy(message, "Access Granted\n", sizeof(message) +1);
+          write(comm_fd, message, strlen(message)+1);
+          printf("Correct auth_code provided by client\n");
+          
+          //Database request
+          printf("gathering database request for: ");
+          read(comm_fd, str, 100);
+          printf("%s\n", str);
+          
+          //DATABASE
+          /* Open database */
+          rc = sqlite3_open("database.db", &db);
+
+          if( rc ) {
+            fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
+            //return(0);
+          } else {
+            fprintf(stdout, "Opened database successfully\n");
+          }
+          // Tests inputs from table
+          sql = "SELECT * FROM PASSWORDS";
+
+          /* Execute SQL statement */
+          rc = sqlite3_exec(db, sql, callback, (void*)data, &zErrMsg);
+
+          if( rc != SQLITE_OK ) {
+            fprintf(stderr, "SQL error: %s\n", zErrMsg);
+            sqlite3_free(zErrMsg);
+          } else {
+            fprintf(stdout, "Operation done successfully\n");
+          }
+
+          strncpy(message, "fetching\n", sizeof(message) +1);
+          write(comm_fd, message, strlen(message)+1);
+
+
+
+
+
+        }
+
+
+        // incorrect code kicks client off the network
+        else{
+
+          printf("Terminating Client socket\n");
+
+          strncpy(message, "Access Denied\n", sizeof(message) +1);
+          write(comm_fd, message, strlen(message)+1);
+          break;
+
+        }
+ 
     }
-  }
-}
-    
-void send_recv(int i, fd_set *master, int sockfd, int fdmax)
-{
-  int nbytes_recvd, j;
-  char recv_buf[BUFSIZE], buf[BUFSIZE];
-  
-  if ((nbytes_recvd = recv(i, recv_buf, BUFSIZE, 0)) <= 0) {
-    if (nbytes_recvd == 0) {
-      printf("socket %d hung up\n", i);
-    }else {
-      perror("recv");
-    }
-    close(i);
-    FD_CLR(i, master);
-  }else { 
-  //  printf("%s\n", recv_buf);
-    for(j = 0; j <= fdmax; j++){
-      send_to_all(j, i, sockfd, nbytes_recvd, recv_buf, master );
-    }
-  } 
-}
-    
-void connection_accept(fd_set *master, int *fdmax, int sockfd, struct sockaddr_in *client_addr)
-{
-  socklen_t addrlen;
-  int newsockfd;
-  
-  addrlen = sizeof(struct sockaddr_in);
-  if((newsockfd = accept(sockfd, (struct sockaddr *)client_addr, &addrlen)) == -1) {
-    perror("accept");
-    exit(1);
-  }else {
-    FD_SET(newsockfd, master);
-    if(newsockfd > *fdmax){
-      *fdmax = newsockfd;
-    }
-    printf("new connection from %s on port %d \n",inet_ntoa(client_addr->sin_addr), ntohs(client_addr->sin_port));
-  }
-}
-  
-void connect_request(int *sockfd, struct sockaddr_in *my_addr)
-{
-  int yes = 1;
-    
-  if ((*sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-    perror("Socket");
-    exit(1);
-  }
-    
-  my_addr->sin_family = AF_INET;
-  my_addr->sin_port = htons(4950);
-  my_addr->sin_addr.s_addr = INADDR_ANY;
-  memset(my_addr->sin_zero, '\0', sizeof my_addr->sin_zero);
-    
-  if (setsockopt(*sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1) {
-    perror("setsockopt");
-    exit(1);
-  }
-    
-  if (bind(*sockfd, (struct sockaddr *)my_addr, sizeof(struct sockaddr)) == -1) {
-    perror("Unable to bind");
-    exit(1);
-  }
-  if (listen(*sockfd, 10) == -1) {
-    perror("listen");
-    exit(1);
-  }
-  printf("\nTCPServer Waiting for client on port 4950\n");
-  fflush(stdout);
-}
-int main()
-{
-  fd_set master;
-  fd_set read_fds;
-  int fdmax, i;
-  int sockfd= 0;
-  struct sockaddr_in my_addr, client_addr;
-  
-  FD_ZERO(&master);
-  FD_ZERO(&read_fds);
-  connect_request(&sockfd, &my_addr);
-  FD_SET(sockfd, &master);
-  
-  fdmax = sockfd;
-  while(1){
-    read_fds = master;
-    if(select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1){
-      perror("select");
-      exit(4);
-    }
-    
-    for (i = 0; i <= fdmax; i++){
-      if (FD_ISSET(i, &read_fds)){
-        if (i == sockfd)
-          connection_accept(&master, &fdmax, sockfd, &client_addr);
-        else
-          send_recv(i, &master, sockfd, fdmax);
-      }
-    }
-  }
-  return 0;
-}
+} 

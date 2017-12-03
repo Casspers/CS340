@@ -1,13 +1,12 @@
 #	build.sh
 # 	Build Script for final project
 
-clear 
 
-#gcc database.c -l sqlite3
+gcc database.c -l sqlite3
 
 #./a.out
 
-gcc -o Server Server.c -pthread
+#gcc -o Server Server.c -pthread -l sqlite3
 
 #sleep .5
 
