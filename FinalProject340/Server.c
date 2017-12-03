@@ -73,102 +73,89 @@ int main(){
 
   while(1){
 
-      bzero( str, 100);
+    bzero( str, 100);
 
-      // reads client input
-      read(comm_fd,str,100);
+    // reads client input
+    read(comm_fd,str,100);
 
-      // will give connection if client has correct code
+    // will give connection if client has correct code
+    //printf("%s\n", str);
+    //printf("%s\n", auth_code);
+    //printf("%i\n", strcmp(str, auth_code));
+
+
+    // Correct code
+    if (strcmp(str, auth_code) == 10){
+
+      //printf("Access Granted");
+      strncpy(message, "Access Granted\n", sizeof(message) +1);
+      write(comm_fd, message, strlen(message)+1);
+      printf("Correct auth_code provided by client\n");
+      
+      //Database request
+      printf("Client database request : ");
+      read(comm_fd, str, 100);
       printf("%s\n", str);
-      printf("%s\n", auth_code);
-      printf("%i\n", strcmp(str, auth_code));
+      
+      //DATABASE
+      /* Open database */
+      rc = sqlite3_open("database.db", &db);
+
+      if( rc ) {
+        fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
+        //return(0);
+      } else {
+        fprintf(stdout, "Opened database successfully\n");
+      }
+
+      // Tests inputs from table
+      // Get data from table
+
+      //printf("%i\n", strcmp(str, "get"));
+
+      if(strcmp(str, "get") == 10){
+        //printf("Entered in the Get server logic");
+        // fetch a row's status
+        sql = "SELECT PASSWORDS.PASS from PASSWORDS where PASSWORDS.USER = 'user1'";
+
+        }
+        //sql = "SELECT PASS FROM PASSWORDS";
 
 
-      // Correct code
-      if (strcmp(str, auth_code) == 10){
+        /* Execute SQL statement */
+        rc = sqlite3_exec(db, sql, callback, (void*)data, &zErrMsg);
 
-        //printf("Access Granted");
-        strncpy(message, "Access Granted\n", sizeof(message) +1);
-        write(comm_fd, message, strlen(message)+1);
-        printf("Correct auth_code provided by client\n");
-        
-        //Database request
-        printf("Client database request : ");
-        read(comm_fd, str, 100);
-        printf("%s\n", str);
-        
-        //DATABASE
-        /* Open database */
-        rc = sqlite3_open("database.db", &db);
-
-        if( rc ) {
-          fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
-          //return(0);
+        if( rc != SQLITE_OK ) {
+          fprintf(stderr, "SQL error: %s\n", zErrMsg);
+          sqlite3_free(zErrMsg);
         } else {
-          fprintf(stdout, "Opened database successfully\n");
+          fprintf(stdout, "Operation done successfully\n");
         }
 
-        // Tests inputs from table
-        // Get data from table
-
-        //printf("%i\n", strcmp(str, "get"));
-
-        if(strcmp(str, "get") == 10){
-          //printf("Entered in the Get server logic");
-          // fetch a row's status
-          retval = sqlite3_step(stmt);
-
-          if(retval == SQLITE_ROW)
-          {
-              sql = sqlite3_column_text(stmt, 1);
-                   // or other type - sqlite3_column_text etc.
-              // ... fetch other columns, if there are any
-          }
-          else if(retval == SQLITE_DONE)
-          {
-              break;
-          }
-          else
-          {
-              sqlite3_finalize(stmt);
-              printf("Some error encountered\n");
-              break;
-          }
-          //sql = "SELECT PASS FROM PASSWORDS";
-
-
-          /* Execute SQL statement */
-          rc = sqlite3_exec(db, sql, callback, (void*)data, &zErrMsg);
-
-          if( rc != SQLITE_OK ) {
-            fprintf(stderr, "SQL error: %s\n", zErrMsg);
-            sqlite3_free(zErrMsg);
-          } else {
-            fprintf(stdout, "Operation done successfully\n");
-          }
-
-          strncpy(message, "fetching\n", sizeof(message) +1);
-          write(comm_fd, message, strlen(message)+1);
-
-        }
-
-
-
-
-
-      }
-
-
-      // incorrect code kicks client off the network
-      else{
-
-        printf("Terminating Client socket\n");
-
-        strncpy(message, "Access Denied\n", sizeof(message) +1);
+        strncpy(message, "fetching\n", sizeof(message) +1);
         write(comm_fd, message, strlen(message)+1);
-        break;
-
+        
+      break;
       }
- 
+      // incorrect code kicks client off the network
+    else{
+
+      printf("Terminating Client socket\n");
+
+      strncpy(message, "Access Denied\n", sizeof(message) +1);
+      write(comm_fd, message, strlen(message)+1);
+      break;
+
     }
-} 
+
+
+
+  }
+
+
+  sqlite3_close(db);
+
+  return 0;
+      
+ 
+}

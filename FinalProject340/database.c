@@ -22,14 +22,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sqlite3.h> 
+#include <string.h>
 
 static int callback(void *data, int argc, char **argv, char **azColName){
    int i;
    fprintf(stderr, "%s: \n", (const char*)data);
+   char test[100];
    
    for(i = 0; i<argc; i++){
       printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+      //printf("%s", argv[i] ? argv[i] : "NULL");
+      strncpy(test, (argv[i] ? argv[i] : "NULL"), sizeof(test)+1);
    }
+   printf("%s", test);
    
    printf("\n");
    return 0;
@@ -92,6 +97,8 @@ int main(int argc, char* argv[]) {
 
    // Tests inputs from table
    sql = "SELECT * FROM PASSWORDS";
+   //sql = "SELECT PASSWORDS.PASS from PASSWORDS where PASSWORDS.USER = 'User1'";
+
 
    /* Execute SQL statement */
    rc = sqlite3_exec(db, sql, callback, (void*)data, &zErrMsg);

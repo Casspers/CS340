@@ -71,16 +71,16 @@ int main(int argc,char **argv)
 
 		    	if(strcmp(sendline, "get") == 10){
 		    		printf("Enter database username you want a password for: ");
-		    		//fgets(sendline, 100,stdin);
+		    		fgets(sendline, 100,stdin);
 		    		//write(sockfd, sendline, strlen(sendline)+1);
 
 		    		//read(sockfd, recvline, 100);
 		    		//printf("%s", recvline);
 
 		    	}
-		    	if(strcmp(sendline, "update") == 0){
+		    	if(strcmp(sendline, "update") == 10){
 		    		printf("Enter database username you want to update: ");
-		    		//fgets(sendline, 100,stdin);
+		    		fgets(sendline, 100,stdin);
 		    		//write(sockfd, sendline, strlen(sendline)+1);
 
 		    		//read(sockfd, recvline, 100);
