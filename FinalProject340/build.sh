@@ -4,7 +4,7 @@
 
 gcc database.c -l sqlite3
 
-#./a.out
+./a.out
 
 #gcc -o Server Server.c -pthread -l sqlite3
 

@@ -105,6 +105,7 @@ int main(){
           } else {
             fprintf(stdout, "Opened database successfully\n");
           }
+          
           // Tests inputs from table
           sql = "SELECT * FROM PASSWORDS";
 
