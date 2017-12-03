@@ -72,13 +72,13 @@ int main(int argc, char* argv[]) {
 
 
    sql = "INSERT INTO PASSWORDS (USER, PASS) "  \
-         "VALUES ('User1', 'Pass1'); " \
+         "VALUES ('User1', 'PassForUser1'); " \
          "INSERT INTO PASSWORDS (USER, PASS)"  \
-         "VALUES ('User2', 'Pass2'); "     \
+         "VALUES ('User2', 'PassForUser2'); "     \
          "INSERT INTO PASSWORDS (USER, PASS)" \
-         "VALUES ('User3', 'Pass3');" \
+         "VALUES ('User3', 'PassForUser3');" \
          "INSERT INTO PASSWORDS (USER, PASS)" \
-         "VALUES ('User4', 'Pass4');";
+         "VALUES ('User4', 'PassForUser4');";
 
    /* Execute SQL statement */
    rc = sqlite3_exec(db, sql, callback, 0, &zErrMsg);

@@ -60,13 +60,45 @@ int main(int argc,char **argv)
 
 	    if( strcmp(recvline, "Access Granted\n") == 0 ){
 	    	// Accept logic
+	    	printf("Type Command:\nget - to get passwords\nupdate - to modify passwords\nexit - to exit\nhelp - for list of commands\n");
+	    	while(1){
 
-	    	printf("Enter database username you want a password for: ");
-	    	fgets(sendline, 100,stdin);
-	    	write(sockfd, sendline, strlen(sendline)+1);
+		    	printf("Command: ");
+		    	fgets(sendline, 100,stdin);
+		    	write(sockfd, sendline, strlen(sendline)+1);
+		    	printf("%i",strcmp(sendline,"update"));
 
-	    	read(sockfd, recvline, 100);
-	    	printf("%s", recvline);
+
+		    	if(strcmp(sendline, "get") == 10){
+		    		printf("Enter database username you want a password for: ");
+		    		//fgets(sendline, 100,stdin);
+		    		//write(sockfd, sendline, strlen(sendline)+1);
+
+		    		//read(sockfd, recvline, 100);
+		    		//printf("%s", recvline);
+
+		    	}
+		    	if(strcmp(sendline, "update") == 0){
+		    		printf("Enter database username you want to update: ");
+		    		//fgets(sendline, 100,stdin);
+		    		//write(sockfd, sendline, strlen(sendline)+1);
+
+		    		//read(sockfd, recvline, 100);
+		    		//printf("%s", recvline);
+
+		    	}
+		    	if(strcmp(sendline, "exit") == 0){
+		    		break;
+		    	}
+		    	if(strcmp(sendline, "help") == 0){
+		    		printf("Acceptable Commands:\nget - to get passwords\nupdate - to modify passwords\nexit - to exit\nhelp - for list of commands\n");
+		    	}
+		    	else{
+		    		printf("Not vaid Command\n");
+		    	}
+	    	}
+ 
+	    	
 
 	    }
     }
