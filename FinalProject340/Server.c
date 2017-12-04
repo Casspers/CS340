@@ -144,30 +144,11 @@ int main(){
             //break;
           }
              
-        }else if(strcmp(str, "update") == 10){
-          printf("Entered in the update server logic and editing ");
-          
-          // fetch a row's status
+        }else if(strcmp(str, "edit") == 10){
+          printf("Entered in the insert server logic and editing: ");
           read(comm_fd, str, 100);
-          printf("%s\n", str);
-          //printf("\n%i", strcmp(str, "exit"));
-          if(strcmp(str, "User1") == 10){
-            sql = "SELECT PASSWORDS.PASS from PASSWORDS where PASSWORDS.USER = 'User1'";
+          sql = str;  
           
-          }else if(strcmp(str, "User2") ==10){
-            sql = "SELECT PASSWORDS.PASS from PASSWORDS where PASSWORDS.USER = 'User2'";
-          
-          }else if(strcmp(str, "User3") ==10){
-            sql = "SELECT PASSWORDS.PASS from PASSWORDS where PASSWORDS.USER = 'User3'";
-          
-          }else if(strcmp(str, "User4") ==10){
-            sql = "SELECT PASSWORDS.PASS from PASSWORDS where PASSWORDS.USER = 'User4'";
-          
-          }else{
-            printf("User did not enter valid database entry");
-            break;
-          }
-
         }else if(strcmp(str, "exit") == 10){
           printf("User Terminated session\n");
           break;

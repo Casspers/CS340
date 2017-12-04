@@ -49,7 +49,7 @@ int main(int argc,char **argv)
         bzero( recvline, 100);
 
         // Verify Client
-        printf("Enter Authenticaton code: ");
+        printf("Enter Authenticaton Key: ");
         fgets(sendline,100,stdin); /*stdin = 0 , for standard input */
         write(sockfd,sendline,strlen(sendline)+1);
 
@@ -60,35 +60,52 @@ int main(int argc,char **argv)
 
 	    if( strcmp(recvline, "Access Granted\n") == 0 ){
 	    	// Accept logic
-	    	printf("Type Command:\nget - to get passwords\nupdate - to modify passwords\nexit - to exit\nhelp - for list of commands\n\n");
+	    	printf("Type Command:\nget - to get passwords\nedit - edit database with SQL commands\nexit - to exit\nhelp - for list of commands\n\n");
 	    	while(1){
 
-		    	printf("Enter Command: ");
+		    	printf("Command: ");
 		    	fgets(sendline, 100,stdin);
 		    	write(sockfd, sendline, strlen(sendline)+1);
-		    	//printf("%i",strcmp(sendline,"update"));
+		    	//printf("%i",strcmp(sendline,"insert"));
 
 
 		    	if(strcmp(sendline, "get") == 10){
 		    		
-		    		printf("\nExisting Users passwords to retrive:\nUser1\nUser2\nUser3\nUser4\n\n");
+		    		printf("\nPlease Specify one of Users by name:\n example - User1\n");
+		    		printf("By Default users 1-4 are created\n");
 		    		printf("Enter get Command: ");
 		    		fgets(sendline, 100,stdin);
 		    		write(sockfd, sendline, strlen(sendline)+1);
-
-		    		// if user does not exit
 		    		
-		    		read(sockfd, recvline, 100);
-		    		printf("For User: %sPassword is: %s\n", sendline, recvline);
-		    		printf("\n-Exit from get Commands-\n\n");
+		    		if(strcmp(sendline, "exit") != 10 ){
+			    	
+			    		// if user does not exit
+			    		read(sockfd, recvline, 100);
+		    			printf("For User: %sPassword is: %s\n", sendline, recvline);
+		    			printf("\n-Exit from get Commands-\n\n");
+		    		}else{
+		    			printf("\n-Exit from get Commands-\n\n");
+		    			goto end;
+		    		}
     	
-		    	}else if(strcmp(sendline, "update") == 10){
-		    		printf("Enter database username you want to update: ");
-		    		fgets(sendline, 100,stdin);
-		    		//write(sockfd, sendline, strlen(sendline)+1);
+		    	}else if(strcmp(sendline, "edit") == 10){
 
-		    		//read(sockfd, recvline, 100);
-		    		//printf("%s", recvline);
+		    		printf("\nCommands MUST be in proper SQL format!\nEample: to change password for user 1\n");
+		    		printf("UPDATE PASSWORDS set PASS = 'newPassord' where USER = 'User1'\n");
+		    		printf("Command: ");
+		    		fgets(sendline,100, stdin);
+		    		if(strcmp(sendline,"exit") !=10){
+		    			write(sockfd,sendline,strlen(sendline)+1);
+		    	
+			    		// if user does not exit
+			    		read(sockfd, recvline, 100);
+			    		//printf("The new Password is: %s\n", sendline);
+			    		
+			    		printf("\n-Exit from edit Commands-\n\n");
+		    		}else{
+		    			printf("\n-Exit from edit Commands-\n\n");
+		    			goto end;
+		    		}
 
 		    	
 		    	}else if(strcmp(sendline, "exit") == 10){
