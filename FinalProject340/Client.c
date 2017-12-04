@@ -70,10 +70,9 @@ int main(int argc,char **argv)
 
 
 		    	if(strcmp(sendline, "get") == 10){
-		    		
-		    		printf("\nPlease Specify one of Users by name:\n example - User1\n");
 		    		printf("By Default users 1-4 are created\n");
-		    		printf("Enter get Command: ");
+		    		printf("\nPlease Specify one of Users by name:\nexample - User1\n");
+		    		printf("\nEnter get Command: ");
 		    		fgets(sendline, 100,stdin);
 		    		write(sockfd, sendline, strlen(sendline)+1);
 		    		
@@ -81,8 +80,15 @@ int main(int argc,char **argv)
 			    	
 			    		// if user does not exit
 			    		read(sockfd, recvline, 100);
+
+			    		if(strcmp(recvline, "Invalid Input") == 10){
+			    			printf("%s",recvline);
+
+			    		}else{
+			    		//read(sockfd, recvline, 100);
 		    			printf("For User: %sPassword is: %s\n", sendline, recvline);
 		    			printf("\n-Exit from get Commands-\n\n");
+		    			}
 		    		}else{
 		    			printf("\n-Exit from get Commands-\n\n");
 		    			goto end;
@@ -90,20 +96,23 @@ int main(int argc,char **argv)
     	
 		    	}else if(strcmp(sendline, "edit") == 10){
 
-		    		printf("\nCommands MUST be in proper SQL format!\nEample: to change password for user 1\n");
+		    		printf("\n---COMMANDS MUST BE IN SQL FORMAT TO BE VALID!---\nEample: to change password for user 1\n");
 		    		printf("UPDATE PASSWORDS set PASS = 'newPassord' where USER = 'User1'\n");
+		    		printf("or\nINSERT INTO PASSWORDS (USER, PASS) VALUES('NewUser','NewPassword')\n");
+		    		printf("or\nTo retrive new users data:\nSELECT PASSWORDS.PASS from PASSWORDS where PASSWORDS.USER = 'username'\n");
 		    		printf("Command: ");
 		    		fgets(sendline,100, stdin);
-		    		if(strcmp(sendline,"exit") !=10){
+		    		if(strcmp(sendline,"exit") != 0){
 		    			write(sockfd,sendline,strlen(sendline)+1);
 		    	
 			    		// if user does not exit
 			    		read(sockfd, recvline, 100);
 			    		//printf("The new Password is: %s\n", sendline);
-			    		
+			    		printf("\n%s", recvline);
 			    		printf("\n-Exit from edit Commands-\n\n");
 		    		}else{
 		    			printf("\n-Exit from edit Commands-\n\n");
+
 		    			goto end;
 		    		}
 
@@ -111,7 +120,7 @@ int main(int argc,char **argv)
 		    	}else if(strcmp(sendline, "exit") == 10){
 		    		goto end;
 		    	
-		    	}else if(strcmp(sendline, "help") == 0){
+		    	}else if(strcmp(sendline, "help") == 10){
 		    		printf("Acceptable Commands:\nget - to get passwords\nupdate - to modify passwords\nexit - to exit\nhelp - for list of commands\n");
 		    	
 		    	}else{
@@ -120,6 +129,7 @@ int main(int argc,char **argv)
 	    	}
  
 	    	end: break;
+
 
 	    }
     }

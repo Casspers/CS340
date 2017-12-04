@@ -36,7 +36,7 @@ static int callback(void *data, int argc, char **argv, char **azColName){
       printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
       strncpy(message, (argv[i] ? argv[i] : "NULL"), sizeof(message)+1);
    }
-   printf("%s", message);
+   //printf("%s", message);
 
    
    printf("\n");
@@ -75,10 +75,11 @@ int main(){
   listen(listen_fd, 10);
 
   comm_fd = accept(listen_fd, (struct sockaddr*) NULL, NULL);
-
+  printf("Client connected on Port: 22000\n");
   while(1){
 
     bzero( str, 100);
+
 
     // reads client input
     read(comm_fd,str,100);
@@ -140,12 +141,14 @@ int main(){
             sql = "SELECT PASSWORDS.PASS from PASSWORDS where PASSWORDS.USER = 'User4'";
           
           }else{
-            printf("User did not enter database entry");
-            //break;
+            printf("User did not enter existing database entry\n");
+            strcpy(message, "Invalid Input");
+            write(comm_fd, message, strlen(message)+1);
+            sql = "Invalid Input";
           }
              
         }else if(strcmp(str, "edit") == 10){
-          printf("Entered in the insert server logic and editing: ");
+          printf("Entered in the insert server logic and editing\n ");
           read(comm_fd, str, 100);
           sql = str;  
           
@@ -153,40 +156,45 @@ int main(){
           printf("User Terminated session\n");
           break;
 
+        }else if(strcmp(str, "help") == 10){
+          printf("User is dumb, and needed help\n");
+          sql ="No Input";
+
         }else{
+
           printf("User did not enter valid command, Terminating session....");
+
           break;
         }
 
-            /* Execute SQL statement */
-            rc = sqlite3_exec(db, sql, callback, (void*)data, &zErrMsg);
+        /* Execute SQL statement */
+        rc = sqlite3_exec(db, sql, callback, (void*)data, &zErrMsg);
 
-            if( rc != SQLITE_OK ) {
-              fprintf(stderr, "SQL error: %s\n", zErrMsg);
-              sqlite3_free(zErrMsg);
-            } else {
-              fprintf(stdout, "Operation done successfully\n");
-            }
+        if( rc != SQLITE_OK ) {
+          fprintf(stderr, "SQL error: %s\n", zErrMsg);
+          sqlite3_free(zErrMsg);
+          write(comm_fd, zErrMsg, strlen(zErrMsg)+1);
+        } else {
+          fprintf(stdout, "Operation done successfully\n");
+        }
 
-            //strncpy(message, "fetching\n", sizeof(message) +1);
-            write(comm_fd, message, strlen(message)+1);
+        //strncpy(message, "fetching\n", sizeof(message) +1);
+        write(comm_fd, message, strlen(message)+1);
           
         
         //break;
+
       }
+
       }
       // incorrect code kicks client off the network
     else{
 
       printf("Terminating Client socket\n");
-
       strncpy(message, "Access Denied\n", sizeof(message) +1);
       write(comm_fd, message, strlen(message)+1);
       break;
-
     }
-
-
 
   }
 
