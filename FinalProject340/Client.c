@@ -60,25 +60,29 @@ int main(int argc,char **argv)
 
 	    if( strcmp(recvline, "Access Granted\n") == 0 ){
 	    	// Accept logic
-	    	printf("Type Command:\nget - to get passwords\nupdate - to modify passwords\nexit - to exit\nhelp - for list of commands\n");
+	    	printf("Type Command:\nget - to get passwords\nupdate - to modify passwords\nexit - to exit\nhelp - for list of commands\n\n");
 	    	while(1){
 
-		    	printf("Command: ");
+		    	printf("Enter Command: ");
 		    	fgets(sendline, 100,stdin);
 		    	write(sockfd, sendline, strlen(sendline)+1);
-		    	printf("%i",strcmp(sendline,"update"));
+		    	//printf("%i",strcmp(sendline,"update"));
 
 
 		    	if(strcmp(sendline, "get") == 10){
-		    		printf("Enter database username you want a password for: ");
+		    		
+		    		printf("\nExisting Users passwords to retrive:\nUser1\nUser2\nUser3\nUser4\n\n");
+		    		printf("Enter get Command: ");
 		    		fgets(sendline, 100,stdin);
-		    		//write(sockfd, sendline, strlen(sendline)+1);
+		    		write(sockfd, sendline, strlen(sendline)+1);
 
-		    		//read(sockfd, recvline, 100);
-		    		//printf("%s", recvline);
-
-		    	}
-		    	if(strcmp(sendline, "update") == 10){
+		    		// if user does not exit
+		    		
+		    		read(sockfd, recvline, 100);
+		    		printf("For User: %sPassword is: %s\n", sendline, recvline);
+		    		printf("\n-Exit from get Commands-\n\n");
+    	
+		    	}else if(strcmp(sendline, "update") == 10){
 		    		printf("Enter database username you want to update: ");
 		    		fgets(sendline, 100,stdin);
 		    		//write(sockfd, sendline, strlen(sendline)+1);
@@ -86,19 +90,19 @@ int main(int argc,char **argv)
 		    		//read(sockfd, recvline, 100);
 		    		//printf("%s", recvline);
 
-		    	}
-		    	if(strcmp(sendline, "exit") == 0){
-		    		break;
-		    	}
-		    	if(strcmp(sendline, "help") == 0){
+		    	
+		    	}else if(strcmp(sendline, "exit") == 10){
+		    		goto end;
+		    	
+		    	}else if(strcmp(sendline, "help") == 0){
 		    		printf("Acceptable Commands:\nget - to get passwords\nupdate - to modify passwords\nexit - to exit\nhelp - for list of commands\n");
-		    	}
-		    	else{
-		    		printf("Not vaid Command\n");
+		    	
+		    	}else{
+		    		printf("Not vaid Command, Please try not to be stupid\n");
 		    	}
 	    	}
  
-	    	
+	    	end: break;
 
 	    }
     }

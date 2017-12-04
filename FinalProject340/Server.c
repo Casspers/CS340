@@ -25,6 +25,8 @@
 #include<string.h>
 #include <stdlib.h>
 #include <sqlite3.h> 
+
+char message[100];
  
 static int callback(void *data, int argc, char **argv, char **azColName){
    int i;
@@ -32,7 +34,10 @@ static int callback(void *data, int argc, char **argv, char **azColName){
    
    for(i = 0; i<argc; i++){
       printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+      strncpy(message, (argv[i] ? argv[i] : "NULL"), sizeof(message)+1);
    }
+   printf("%s", message);
+
    
    printf("\n");
    return 0;
@@ -41,7 +46,7 @@ static int callback(void *data, int argc, char **argv, char **azColName){
 int main(){
 
   sqlite3_stmt* stmt = NULL;
-  int retval, idx;
+
   sqlite3 *db;
   char *zErrMsg = 0;
   int rc;
@@ -53,7 +58,7 @@ int main(){
   char auth_code[100] = "307";
   char str[100];
   int listen_fd, comm_fd;
-  char message[100];
+  //char message[100];
 
   struct sockaddr_in servaddr;
 
@@ -91,12 +96,7 @@ int main(){
       strncpy(message, "Access Granted\n", sizeof(message) +1);
       write(comm_fd, message, strlen(message)+1);
       printf("Correct auth_code provided by client\n");
-      
-      //Database request
-      printf("Client database request : ");
-      read(comm_fd, str, 100);
-      printf("%s\n", str);
-      
+
       //DATABASE
       /* Open database */
       rc = sqlite3_open("database.db", &db);
@@ -108,34 +108,91 @@ int main(){
         fprintf(stdout, "Opened database successfully\n");
       }
 
-      // Tests inputs from table
-      // Get data from table
-
-      //printf("%i\n", strcmp(str, "get"));
-
-      if(strcmp(str, "get") == 10){
-        //printf("Entered in the Get server logic");
-        // fetch a row's status
-        sql = "SELECT PASSWORDS.PASS from PASSWORDS where PASSWORDS.USER = 'user1'";
-
-        }
-        //sql = "SELECT PASS FROM PASSWORDS";
-
-
-        /* Execute SQL statement */
-        rc = sqlite3_exec(db, sql, callback, (void*)data, &zErrMsg);
-
-        if( rc != SQLITE_OK ) {
-          fprintf(stderr, "SQL error: %s\n", zErrMsg);
-          sqlite3_free(zErrMsg);
-        } else {
-          fprintf(stdout, "Operation done successfully\n");
-        }
-
-        strncpy(message, "fetching\n", sizeof(message) +1);
-        write(comm_fd, message, strlen(message)+1);
+      while(1){
+        //Database request
+        printf("Client database request : ");
+        read(comm_fd, str, 100);
+        printf("%s", str);
+        //printf("%i\n", strcmp(str, "exit"));
         
-      break;
+        
+
+        // Tests inputs from table
+        // Get data from table
+
+        if(strcmp(str, "get") == 10){
+          printf("Entered in the Get server logic and wants ");
+          
+          // fetch a row's status
+          read(comm_fd, str, 100);
+          printf("%s\n", str);
+          //rintf("\n%i", strcmp(str, "exit"));
+          if(strcmp(str, "User1") == 10){
+            sql = "SELECT PASSWORDS.PASS from PASSWORDS where PASSWORDS.USER = 'User1'";
+          
+          }else if(strcmp(str, "User2") ==10){
+            sql = "SELECT PASSWORDS.PASS from PASSWORDS where PASSWORDS.USER = 'User2'";
+          
+          }else if(strcmp(str, "User3") ==10){
+            sql = "SELECT PASSWORDS.PASS from PASSWORDS where PASSWORDS.USER = 'User3'";
+          
+          }else if(strcmp(str, "User4") ==10){
+            sql = "SELECT PASSWORDS.PASS from PASSWORDS where PASSWORDS.USER = 'User4'";
+          
+          }else{
+            printf("User did not enter database entry");
+            //break;
+          }
+             
+        }else if(strcmp(str, "update") == 10){
+          printf("Entered in the update server logic and editing ");
+          
+          // fetch a row's status
+          read(comm_fd, str, 100);
+          printf("%s\n", str);
+          //printf("\n%i", strcmp(str, "exit"));
+          if(strcmp(str, "User1") == 10){
+            sql = "SELECT PASSWORDS.PASS from PASSWORDS where PASSWORDS.USER = 'User1'";
+          
+          }else if(strcmp(str, "User2") ==10){
+            sql = "SELECT PASSWORDS.PASS from PASSWORDS where PASSWORDS.USER = 'User2'";
+          
+          }else if(strcmp(str, "User3") ==10){
+            sql = "SELECT PASSWORDS.PASS from PASSWORDS where PASSWORDS.USER = 'User3'";
+          
+          }else if(strcmp(str, "User4") ==10){
+            sql = "SELECT PASSWORDS.PASS from PASSWORDS where PASSWORDS.USER = 'User4'";
+          
+          }else{
+            printf("User did not enter valid database entry");
+            break;
+          }
+
+        }else if(strcmp(str, "exit") == 10){
+          printf("User Terminated session\n");
+          break;
+
+        }else{
+          printf("User did not enter valid command, Terminating session....");
+          break;
+        }
+
+            /* Execute SQL statement */
+            rc = sqlite3_exec(db, sql, callback, (void*)data, &zErrMsg);
+
+            if( rc != SQLITE_OK ) {
+              fprintf(stderr, "SQL error: %s\n", zErrMsg);
+              sqlite3_free(zErrMsg);
+            } else {
+              fprintf(stdout, "Operation done successfully\n");
+            }
+
+            //strncpy(message, "fetching\n", sizeof(message) +1);
+            write(comm_fd, message, strlen(message)+1);
+          
+        
+        //break;
+      }
       }
       // incorrect code kicks client off the network
     else{
